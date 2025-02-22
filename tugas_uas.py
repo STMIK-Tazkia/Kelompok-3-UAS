@@ -1,43 +1,90 @@
 import heapq
 
-def heuristic(a, b):
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+# Daftar mobil yang bisa dipilih
+print ("Mobil yg kamu punya: Supra, GTR R35, GTR R34, AE 86, S2000, NSX, Civic")
+mobil_yg_kamu_punya = {"Supra", "GTR R35", "GTR R34", "AE 86", "S2000", "NSX", "Civic", "Aventador"}
 
-def astar(grid, start, goal):
-    open_set = [(0, start)]
-    came_from = {}
-    g_score = {start: 0}
-    
-    while open_set:
-        _, current = heapq.heappop(open_set)
-        if current == goal:
-            path = []
-            while current in came_from:
-                path.append(current)
-                current = came_from[current]
-            return path[::-1]
-        
-        for dx, dy in [(0,1), (1,0), (0,-1), (-1,0)]:
-            neighbor = (current[0] + dx, current[1] + dy)
-            if neighbor in grid and grid[neighbor] == 0:
-                new_g_score = g_score[current] + 1
-                if neighbor not in g_score or new_g_score < g_score[neighbor]:
-                    came_from[neighbor] = current
-                    g_score[neighbor] = new_g_score
-                    heapq.heappush(open_set, (new_g_score + heuristic(neighbor, goal), neighbor))
-    return None
-
-car_brand = input("Masukkan brand mobil yg kamu sukail: ")
-print(f"Mobil {car_brand} ,sabar beliau sedang berada di jalur balap")
-
-size = 5
-grid = {(x, y): 0 for x in range(size) for y in range(size)}
-grid[(2, 2)] = 1  # Obstacle
-
-start, goal = (0, 0), (4, 4)
-path = astar(grid, start, goal)
-
-if path:
-    print(f"Jalur tercepat untuk {car_brand}: {path}")
+car_brand = input("Pilih mobil: ").strip()
+if car_brand not in mobil_yg_kamu_punya:
+    print("Mobil masih di kunci.")
 else:
-    print(f"Tidak ada jalur tersedia untuk {car_brand}!")
+    print(f"Mobil {car_brand}, sabar beliau sedang berada di jalur balap")
+
+    print("-" * 40)
+    print("Perkiraan a star dalam game Forza Horizon 4")
+    print("-" * 40)
+    print("\n")
+
+    # Fungsi menampilkan peta
+    def print_peta(peta, posisi_pemain, posisi_musuh):
+        for i in range(len(peta)):
+            row = []
+            for j in range(len(peta[i])):
+                if (i, j) == posisi_pemain:
+                    row.append('M')  # M untuk mobil
+                elif (i, j) == posisi_musuh:
+                    row.append('F')  # F untuk Garis FINISH
+                elif peta[i][j] == 1:
+                    row.append('#')  # Tikungan atau belokan
+                else:
+                    row.append('.')  # Jalur balap
+            print(" ".join(row))
+        print()
+
+    # Fungsi untuk menggerakkan pemain
+    def gerak_player(peta, posisi_pemain):
+        print("MULAIIII")
+        print("Gerakan Mobil: W (maju), A (belok kiri), S (mundur), D (belok kanan), O (quit)")
+        gerakan = input("Masukkan gerakan (W/A/S/D/O): ").upper()
+
+        if gerakan == "O":
+            return "keluar"
+        
+        x, y = posisi_pemain
+
+        if gerakan == "W" and x > 0 and peta[x-1][y] != 1:
+            return (x-1, y)
+        elif gerakan == "S" and x < len(peta) - 1 and peta[x+1][y] != 1:
+            return (x+1, y)
+        elif gerakan == "A" and y > 0 and peta[x][y-1] != 1:
+            return (x, y-1)
+        elif gerakan == "D" and y < len(peta[0]) - 1 and peta[x][y+1] != 1:
+            return (x, y+1)
+        else:
+            print("Gerakan tidak valid! Coba lagi.")
+            return posisi_pemain
+
+    # Fungsi utama
+    def main():
+        peta = [
+            [0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 1, 0, 1, 0, 1], 
+            [1, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 0, 1, 0, 1],
+            [1, 1, 0, 0, 0, 0, 1],
+            [1, 1, 0, 1, 1, 0, 1],
+            [1, 0, 0, 0, 1, 0, 1],
+            [1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 0, 0, 0, 0, 1],
+            [1, 0, 1, 1, 1, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0],
+        ]
+
+        posisi_pemain = (11, 6)
+        posisi_musuh = (0, 0)
+
+        while True:
+            print_peta(peta, posisi_pemain, posisi_musuh)
+            posisi_pemain = gerak_player(peta, posisi_pemain)
+            
+            if posisi_pemain == "keluar":
+                print("Anda keluar dari permainan.")
+                break
+
+            if posisi_pemain == posisi_musuh:
+                print("FINISH, selamat kamu juara satu, karna cuma kamu yang ikut balapan!")
+                break
+
+    if __name__ == "__main__":
+        main()
