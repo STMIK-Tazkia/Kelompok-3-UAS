@@ -1,90 +1,57 @@
 import heapq
 
+# Welcome Greeting
+print(" ")
+print("Selamat datang di game Forza Horizon 4")
+print(" ")
+
 # Daftar mobil yang bisa dipilih
-print ("Mobil yg kamu punya: Supra, GTR R35, GTR R34, AE 86, S2000, NSX, Civic")
+
+print("-" * 70)
+print("Mobil yg kamu punya: Supra, GTR R35, GTR R34, AE 86, S2000, NSX, Civic")
 mobil_yg_kamu_punya = {"Supra", "GTR R35", "GTR R34", "AE 86", "S2000", "NSX", "Civic", "Aventador"}
 
+# Pilih Mobil
 car_brand = input("Pilih mobil: ").strip()
+print("-" * 70)
+print(" ")
+
+import sys
+
 if car_brand not in mobil_yg_kamu_punya:
-    print("Mobil masih di kunci.")
+    print("Mobil Tidak Ditemukan!.")
+    sys.exit()
+
 else:
-    print(f"Mobil {car_brand}, sabar beliau sedang berada di jalur balap")
+    print(f"Kamu memilih mobil {car_brand}!")
+    print(" ")
+    print("-" * 45)
+    print("Perkiraan A Star dalam game Forza Horizon 4")
+    print("-" * 45)
 
-    print("-" * 40)
-    print("Perkiraan a star dalam game Forza Horizon 4")
-    print("-" * 40)
-    print("\n")
+# Mencari Jalur Terbaik
 
-    # Fungsi menampilkan peta
-    def print_peta(peta, posisi_pemain, posisi_musuh):
-        for i in range(len(peta)):
-            row = []
-            for j in range(len(peta[i])):
-                if (i, j) == posisi_pemain:
-                    row.append('M')  # M untuk mobil
-                elif (i, j) == posisi_musuh:
-                    row.append('F')  # F untuk Garis FINISH
-                elif peta[i][j] == 1:
-                    row.append('#')  # Tikungan atau belokan
-                else:
-                    row.append('.')  # Jalur balap
-            print(" ".join(row))
-        print()
-
-    # Fungsi untuk menggerakkan pemain
-    def gerak_player(peta, posisi_pemain):
-        print("MULAIIII")
-        print("Gerakan Mobil: W (maju), A (belok kiri), S (mundur), D (belok kanan), O (quit)")
-        gerakan = input("Masukkan gerakan (W/A/S/D/O): ").upper()
-
-        if gerakan == "O":
-            return "keluar"
+    def a_star(peta, start, finish):
+        baris, kolom = len(peta), len(peta[0])
+        open_set = []  # Priority queue untuk A*
+        heapq.heappush(open_set, (0, start))
+        came_from = {}
+        g_score = {start: 0}
+        f_score = {start: manhattan(start, finish)}
         
-        x, y = posisi_pemain
-
-        if gerakan == "W" and x > 0 and peta[x-1][y] != 1:
-            return (x-1, y)
-        elif gerakan == "S" and x < len(peta) - 1 and peta[x+1][y] != 1:
-            return (x+1, y)
-        elif gerakan == "A" and y > 0 and peta[x][y-1] != 1:
-            return (x, y-1)
-        elif gerakan == "D" and y < len(peta[0]) - 1 and peta[x][y+1] != 1:
-            return (x, y+1)
-        else:
-            print("Gerakan tidak valid! Coba lagi.")
-            return posisi_pemain
-
-    # Fungsi utama
-    def main():
-        peta = [
-            [0, 0, 0, 0, 0, 0, 0],
-            [1, 0, 1, 0, 1, 0, 1],
-            [1, 0, 1, 0, 1, 0, 1], 
-            [1, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 0, 1, 0, 1],
-            [1, 1, 0, 0, 0, 0, 1],
-            [1, 1, 0, 1, 1, 0, 1],
-            [1, 0, 0, 0, 1, 0, 1],
-            [1, 0, 1, 0, 1, 0, 1],
-            [1, 0, 0, 0, 0, 0, 1],
-            [1, 0, 1, 1, 1, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0],
-        ]
-
-        posisi_pemain = (11, 6)
-        posisi_musuh = (0, 0)
-
-        while True:
-            print_peta(peta, posisi_pemain, posisi_musuh)
-            posisi_pemain = gerak_player(peta, posisi_pemain)
+        while open_set:
+            _, current = heapq.heappop(open_set)
             
-            if posisi_pemain == "keluar":
-                print("Anda keluar dari permainan.")
-                break
-
-            if posisi_pemain == posisi_musuh:
-                print("FINISH, selamat kamu juara satu, karna cuma kamu yang ikut balapan!")
-                break
-
-    if __name__ == "__main__":
-        main()
+            if current == finish:
+                return reconstruct_path(came_from, current)
+            
+            for neighbor in get_neighbors(current, peta):
+                temp_g_score = g_score[current] + 1
+                
+                if neighbor not in g_score or temp_g_score < g_score[neighbor]:
+                    came_from[neighbor] = current
+                    g_score[neighbor] = temp_g_score
+                    f_score[neighbor] = temp_g_score + manhattan(neighbor, finish)
+                    heapq.heappush(open_set, (f_score[neighbor], neighbor))
+        
+        return None  # Tidak ada jalur
