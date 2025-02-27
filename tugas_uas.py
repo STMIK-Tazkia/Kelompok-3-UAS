@@ -55,3 +55,32 @@ else:
                     heapq.heappush(open_set, (f_score[neighbor], neighbor))
         
         return None  # Tidak ada jalur
+    
+# Menghitung Jarak antara dua point grid
+
+    def manhattan(pos1, pos2):
+        return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
+
+# Mencari Jalur Yang Dapat Dilewati Dari Posisi Pemain Ke Finish
+
+    def get_neighbors(pos, peta):
+        x, y = pos
+        neighbors = []
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Atas, bawah, kiri, kanan
+        
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < len(peta) and 0 <= ny < len(peta[0]) and peta[nx][ny] == 0:
+                neighbors.append((nx, ny))
+        
+        return neighbors
+
+#Merekonstruksi Jalur Terbaik
+
+    def reconstruct_path(came_from, current):
+        path = []
+        while current in came_from:
+            path.append(current)
+            current = came_from[current]
+        path.reverse()
+        return path
